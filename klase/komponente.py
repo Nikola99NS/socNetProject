@@ -1,139 +1,120 @@
+from asyncio.windows_events import NULL
 import networkx as nx
 from itertools import chain
 from msilib.schema import SelfReg
 import sys
-sys.setrecursionlimit(10000)
+from rucniGraf import ucitaj_klasterabilan, ucitaj_klasterabilan
+from rucniGraf import ucitaj_neklasterabilan
+from nacrtaj import nacrtaj
+import random
+import itertools
+
+sys.setrecursionlimit(1000000)
 
 
 
 SelfReg.minusGrane ={}
 SelfReg.minusGraneList = []
-
-# def vratiKomponente(map):
+SelfReg.brojac = 0
     
-#     komp = []
-#     kompMap = {}
-#     mapToList = list()
+def vratiKomponente(g):
+    mapaKomp = {}
+    for c in g.nodes:
+        if c not in list(chain(*list(mapaKomp.values()))) :
+            lista = []
+            lista.append(c)
+            for komsija in list(g.neighbors(c)):
+                if komsija not in lista:
+                    if g.get_edge_data(c,komsija)['znak'] == "+" :
+                        lista.append(komsija)
+                        lista = rek(lista, komsija, g)
+            mapaKomp[c] = lista
+            # print(mapaKomp[c])
+            lista = []
+    # print("kraj")
+    return mapaKomp
 
+def rek (lista, komsija, g):
+    for k in list(g.neighbors(komsija)):
+        if k not in lista:
+            if g.get_edge_data(komsija,k)['znak'] == "+" :
+                lista.append(k) 
+                rek(lista, k, g)
     
-#     for i in range (list(map.keys())[0],list(map)[-1]+1):
-
-#         mapToList = list(kompMap.values())
-#         if i not in list(chain(*list(mapToList))) :
-#             komp.append(i)
-#             kompMap[i]=komp
-#             for j in range(0,len(map[i])):
-#                 if map[i][j] not in komp :
-#                     komp.append(map[i][j])
-#                     komp = bfs(komp, map[i][j], map)
-#             kompMap[i]=komp
-#             komp=[]
-#     return kompMap
-def vratiKomponente(map):
-    
-    komp = []
-    kompMap = {}
-    mapToList = list()
-
-    
-    for i in list(map.keys()):
-
-        mapToList = list(kompMap.values())
-        if i not in list(chain(*list(mapToList))) :
-            komp.append(i)
-            kompMap[i]=komp
-            for j in range(0,len(map[i])):
-                if map[i][j] not in komp :
-                    komp.append(map[i][j])
-                    komp = bfs(komp, map[i][j], map)
-            kompMap[i]=komp
-            komp=[]
-    return kompMap
-    
-
-def bfs(komp, broj, map):
-    for i in range (0, len(map[broj])):
-        if map[broj][i] not in komp:
-            komp.append(map[broj][i])
-            komp = bfs(komp, map[broj][i], map)
-    return komp
+    return lista
 
 
-def proveriKoalicije(mapaKomponenti, n, g):
-    for i in range (0, n) :
+def proveriKoalicije(mapaKomponenti, g):
+    brAnti = 0
+    for i in range (0, len(mapaKomponenti.keys())) :
         daLiJeKoalicija = proveriDaLiJeKlasterKoalicija(mapaKomponenti[list(mapaKomponenti.keys())[i]], g)
         if daLiJeKoalicija =="nije koalicija":
-            return False
-    return True
+            brAnti = brAnti + 1
+    return brAnti
             
 
 def proveriDaLiJeKlasterKoalicija(elementiKlastera, g):
-    
-    for i in range (0, len(elementiKlastera)):
-        for j in range(1, len(elementiKlastera)) :
-            if i>=j : continue
-            if g.has_edge(elementiKlastera[i], elementiKlastera[j]):
-                z = g.get_edge_data(elementiKlastera[i], elementiKlastera[j])['znak']
-                if z=="-" : return "nije koalicija"
+    for a, b in itertools.combinations(elementiKlastera, 2):
+        if g.has_edge(a, b):
+            z = g.get_edge_data(a, b)['znak']
+            if z=="-" : return "nije koalicija"
     return "je koalicija"
 
 
 def vratiGrafoveAntiKoalicija(mapaKomponenti, n, g):
     grafovi = []
-
-    minusGrane={}
     for i in range (0, n) :
-        graf = vratiAntikoalicije(mapaKomponenti[list(mapaKomponenti.keys())[i]], g)
+        elementiKlastera = mapaKomponenti[list(mapaKomponenti.keys())[i]]
+        graf = vratiGrafAntikoalicije(elementiKlastera, g)
         if graf is not None:
             grafovi.append(graf)
             SelfReg.minusGraneList.append(SelfReg.minusGrane)
     return grafovi
 
-def vratiAntikoalicije (elementiKlastera, g):
-    antiMap = {}
-    antiList = []
-    minusGrane = {}
-
-    for i in range (0, len(elementiKlastera)):
-        for j in range(1, len(elementiKlastera)) :
-            if i>=j : continue
-            if g.has_edge(elementiKlastera[i], elementiKlastera[j]):
-                z = g.get_edge_data(elementiKlastera[i], elementiKlastera[j])['znak']
-                if z=="-" :  
-                    g2 = kreirajKlaster(elementiKlastera, g)
+def vratiGrafAntikoalicije (elementiKlastera, g):
+    for a, b in itertools.combinations(elementiKlastera, 2):
+        if g.has_edge(a, b):
+            z = g.get_edge_data(a, b)['znak']
+            if z=="-" :  
+                    g2 = kreirajGrafKlastera(elementiKlastera, g)
                     return g2
-                   
 
-
-
-def kreirajKlaster(elementiKlastera, g):
+def kreirajGrafKlastera(elementiKlastera, g):
     g2 = nx.Graph()
-
-    brojac = 0
-    for i in range (0, len(elementiKlastera)):
-        for j in range(1, len(elementiKlastera)) :
-            if i>=j : continue
-            if g.has_edge(elementiKlastera[i], elementiKlastera[j]):
-                z = g.get_edge_data(elementiKlastera[i], elementiKlastera[j])['znak']
-                g2.add_node(elementiKlastera[i])
-                g2.add_node(elementiKlastera[j])
-                g2.add_edge(elementiKlastera[i], elementiKlastera[j], znak=z)
-
-                if z == '-':
-                    SelfReg.minusGrane[brojac]=[elementiKlastera[i],elementiKlastera[j]]
-                    brojac = brojac + 1
-    # print("grane koje treba izbaciti " , SelfReg.minusGrane)
-    return g2  
+    for a, b in itertools.combinations(elementiKlastera, 2):
+        if g.has_edge(a, b):
+            z = g.get_edge_data(a, b)['znak']
+            g2.add_node(a)
+            g2.add_node(b)
+            g2.add_edge(a, b, znak=z)
+            if z=="-" :  
+                SelfReg.minusGrane[SelfReg.brojac]=[a, b]
+                SelfReg.brojac = SelfReg.brojac + 1
+    return g2
         
 
 def izbaciMinusGrane(antiKoalicijeListOfGrafs, g):
+
+    grafNovi = g.copy()
+
     for i in range (0, len(antiKoalicijeListOfGrafs)):
 
         for j in range(0, len(SelfReg.minusGrane)):
             if antiKoalicijeListOfGrafs[i].has_edge(SelfReg.minusGrane[j][0], SelfReg.minusGrane[j][1]) :
-                g.remove_edge(SelfReg.minusGrane[j][0], SelfReg.minusGrane[j][1])
+                grafNovi.remove_edge(SelfReg.minusGrane[j][0], SelfReg.minusGrane[j][1])        
 
-    return g
+    return grafNovi
+
+
+def oznaci_grane_grafa(grafNovi):
+    grafNovi.edges(data=True)
+    nx.set_edge_attributes(grafNovi, "+", "znak")
+    epsilon = 0.33
+    for (u, v) in grafNovi.edges():
+        if random.uniform(0, 1) < epsilon:
+            grafNovi.add_edge(u, v, znak="-")
+    return grafNovi
+
 
         
 

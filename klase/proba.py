@@ -4,24 +4,81 @@ from itertools import chain
 from os import path
 import os
 from nacrtaj import nacrtaj
+import copy
+from asyncio.windows_events import NULL
+from gettext import NullTranslations
+import networkx as nx
+import random
+from analiza import prosecanStepenGrafa, prosecanStepenKomponenti
+from komponente import proveriKoalicije
+from rucniGraf import ucitaj_klasterabilan, ucitaj_neklasterabilan
+from grafToMap import grafPlusToMap
+from komponente import vratiKomponente, proveriKoalicije, vratiGrafoveAntiKoalicija, kreirajGrafKlastera, izbaciMinusGrane
+from nacrtaj import nacrtaj
+from msilib.schema import SelfReg
+from ucitajTxt import ucitaj_wiki, ucitaj_slashdot
+from os import path
+import os
+
 
 
 SelfReg.minusGrane ={}
 SelfReg.minusGraneList = []
 
 
-def ucitaj_wiki(putanja):
+def radi():
+    # g = ucitaj_klasterabilan()
+    # mapaKomponenti = vratiKomp(g)
+    # print(mapaKomponenti)
 
-    graf = nx.Graph()
-    graf.add_node(1)
-    graf.add_node(2)
-    graf.add_node(3)
+    g = nx.Graph()
 
-    graf.add_edge(1,3)
-    graf.add_edge(2,3)
-    graf.add_edge(1,2)
-    print(len(graf.edges))
+    # for i in range(1,16):
+    #     g.add_node(i)
+    
+    # g.add_edge(1, 2, znak="+")
+    # g.add_edge(1, 3, znak="-")   
 
+    # g.add_edge(2, 3, znak="+") 
+    # g.add_edge(2, 4, znak="-") 
+    # g.add_edge(2, 5, znak="+")
+
+    # print(g.get_edge_data(2,4)['znak'])
+
+    # mapa = {}
+    # lista1=[1,2,3,4,5]
+    # lista2=[7,8,64]
+    # mapa[1]=lista1
+    # mapa[2]=lista2
+    # print(list(chain(*list(mapa.values()))))
+    
+# def vratiKomp(g):
+#     mapaKomp = {}
+#     for c in g.nodes:
+#         if c not in list(chain(*list(mapaKomp.values()))) :
+#             lista = []
+#             lista.append(c)
+#             for komsija in list(g.neighbors(c)):
+#                 if g.get_edge_data(c,komsija)['znak'] == "+" :
+#                     if komsija not in lista:
+#                         lista.append(komsija)
+#                         bfs(lista, komsija, g)
+#             mapaKomp[c] = lista
+#             lista = []
+#     return mapaKomp
+
+# def bfs (lista, komsija, g):
+#     for k in list(g.neighbors(komsija)):
+#         if k not in lista:
+#             if g.get_edge_data(komsija,k)['znak'] == "+" :
+#                 lista.append(k) 
+#                 bfs(lista, k, g)
+#     return lista
+
+radi()
+
+
+ 
 #     file = open(putanja, "r", encoding="utf8")
 #     graf_wiki= nx.DiGraph()
 #     linije = file.read().splitlines()

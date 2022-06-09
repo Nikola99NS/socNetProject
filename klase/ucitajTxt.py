@@ -1,4 +1,9 @@
+from asyncio.windows_events import NULL
+from calendar import c
+from contextlib import nullcontext
 import networkx as nx
+import csv
+
 
 def ucitaj_wiki(putanja):
 
@@ -27,6 +32,33 @@ def ucitaj_wiki(putanja):
 
 
 
+def ucitaj_slashdot(putanja):
+    brojac = 0
+    file = open(putanja, "r", encoding="utf8")
+    linije = file.read().splitlines()
+    cvor_A = None
+    cvor_B = None
+    graf = nx.DiGraph()
+    for line in linije:
+        brojac = brojac + 1
+        if line.startswith("#"):
+            continue
+        line = line.split("\t")
+        if "-1" in line[2]:
+            znak = "-"
+            cvor_A = line[0]
+            cvor_B = line[1]
+        else:
+            znak = "+"
+            cvor_A = line[0]
+            cvor_B = line[1]
+        # element = (line[0].strip(), line[1].strip(), {'znak': znak})
+        graf.add_edge(cvor_A, cvor_B, znak=znak)
+        if brojac == 100000:
+            return pretvori_u_neusmeren(graf)
+    
+    return pretvori_u_neusmeren(graf)
+
 
 def pretvori_u_neusmeren(graf):
     usmeren_graf = nx.Graph()
@@ -40,5 +72,18 @@ def pretvori_u_neusmeren(graf):
             usmeren_graf[u][v]['znak'] = "-"
         else:
             usmeren_graf[u][v]['znak'] = "+"
-    print("Zavrseno ucitavanje!")
     return usmeren_graf
+
+
+def ucitaj_epinions(putanja):
+    graf_epinions = nx.DiGraph()
+    with open(putanja, 'r') as csv_file:
+        reader = csv.reader(csv_file)
+        for row in reader:
+            if int(row[2]) > 0:
+                znak = "+"
+            else:
+                znak = "-"
+            graf_epinions.add_edge(row[0], row[1], znak=znak)
+    csv_file.close()
+    return pretvori_u_neusmeren(graf_epinions)

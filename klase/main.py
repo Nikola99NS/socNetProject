@@ -1,12 +1,14 @@
+from asyncio.windows_events import NULL
+from gettext import NullTranslations
 import networkx as nx
 import random
+from analiza import prosecanStepenGrafa, prosecanStepenKomponenti, prosecanDijametar
 from komponente import proveriKoalicije
-from rucniKlasterabilanGraf import ucitaj, ucitaj_neklasterabilan
-from grafToMap import grafPlusToMap
-from komponente import vratiKomponente, proveriKoalicije, vratiGrafoveAntiKoalicija, kreirajKlaster, izbaciMinusGrane
+from rucniGraf import ucitaj_klasterabilan, ucitaj_neklasterabilan
+from komponente import vratiKomponente, proveriKoalicije, vratiGrafoveAntiKoalicija, kreirajGrafKlastera, izbaciMinusGrane
 from nacrtaj import nacrtaj
 from msilib.schema import SelfReg
-from ucitajTxt import ucitaj_wiki
+from ucitajTxt import ucitaj_wiki, ucitaj_slashdot, ucitaj_epinions
 from os import path
 import os
 
@@ -15,53 +17,75 @@ import os
 def main():
 
 
-    brojGrafa =input ("Unesite koji graf zelite da analiziramo:\n 1. za rucni klasterabilan \n 2. za rucni neklasterabilan \n 3. za random generisan \n 4. za ucitavanje grafa iz .txt fajla ")   
+    brojGrafa =input ("Unesite koji graf zelite da analiziramo:\n 1. za rucni klasterabilan \n 2. za rucni neklasterabilan \n 3. za random generisan \n 4. za ucitavanje grafa iz wiki.txt fajla \n 5.za ucitavanje grafa iz slashdot.txt fajla \n 6. za ucitavanje grafa iz epinions.txt")   
     brGrafa = int(brojGrafa)
     g = ucitajGraf(brGrafa)
-    # nacrtaj(g)
-    # print(g.edges(data=True))
+ 
     print("Broj grana grafa : ",len(g.edges))
-    grafPlusMap = grafPlusToMap(g)
-    # print(grafPlusMap)
-    mapaKomponenti = vratiKomponente(grafPlusMap)
+    print("Broj cvorova grafa : ", len(g.nodes))
+    mapaKomponenti = vratiKomponente(g)
     print("Broj komponenti je : ",len(mapaKomponenti.keys()))
-    print(mapaKomponenti)
-    daLiJeKlasterabilan = proveriKoalicije(mapaKomponenti, len(mapaKomponenti.keys()), g)
+    print("Broj povezanih komponenti : ",nx.number_connected_components(g))
 
+    brAntikoalicija = proveriKoalicije(mapaKomponenti, g)
 
-    antiKoalicijeListOfGrafs = []
+    if brAntikoalicija == 0 :
+        print("Komponente su : ", list(mapaKomponenti.values()))
+        print ("Ovako izgleda graf : ")
+        nacrtaj(g)
+        print("Graf je klasterabilan. Nema antikoalicija")
+        print("Prosecan stepen grafa", str(round(prosecanStepenGrafa(g),2)))
 
-    if daLiJeKlasterabilan==True :
-        print("Graf je klasterabilan")
-        print("Graf za {}. koaliciju ce biti prikazan".format(2))
-        # nacrtaj(kreirajKlaster(mapaKomponenti[list(mapaKomponenti.keys())[1]], g))
-        
+       
+
     else :
+        if brGrafa >0 and brGrafa < 4 :
+            nacrtaj(g)
         print("Graf nije klasterabilan")
         antiKoalicijeListOfGrafs = vratiGrafoveAntiKoalicija(mapaKomponenti, len(mapaKomponenti.keys()),g)
-        print("Postoji {} antikoalicija".format(len(antiKoalicijeListOfGrafs)))
-        for i in range (0,len(antiKoalicijeListOfGrafs)):
-            print("Cvorovi {}. antiKoalicije".format(i),antiKoalicijeListOfGrafs[i].edges(data=True))
+        if brGrafa > 0 and brGrafa < 4 : 
+            for i in  antiKoalicijeListOfGrafs :
+                print("Graf antikoalicija")
+                nacrtaj(i)
 
-        # if antiKoalicijeListOfGrafs:
-            # print("Graf antikoalicija")
-            # nacrtaj(antiKoalicijeListOfGrafs[0])
-        # print("Broj grana koje treba izbaciti", SelfReg.minusGraneList)
-        print("Grane koje treba izbaciti da bi graf bio klasterabilan" , SelfReg.minusGraneList)
+        print("postoji {} koalicija".format(len(mapaKomponenti.keys()) - brAntikoalicija))
+        print("Postoji {} antikoalicija".format(brAntikoalicija))
+        print("Broj grana koje narusavaju klasterabilnost ", SelfReg.brojac)
+        # print(SelfReg.minusGrane) 
+
         grafPosleIzbacivanja = izbaciMinusGrane(antiKoalicijeListOfGrafs, g)
-        # print("Graf posle izbacivanja grana koje smetaju")
-        # nacrtaj(grafPosleIzbacivanja)
+        # print(antiKoalicijeListOfGrafs[0].edges(data=True))
+        # print("Graf posle izbacivanja")
+        print("Graf posle izbacivanja grana koje smetaju", grafPosleIzbacivanja)
+        
+        if brGrafa > 0 and brGrafa <4:
+            nacrtaj(grafPosleIzbacivanja)
 
-        mapaPosleIzbacivanjaMinusGrana = grafPlusToMap(grafPosleIzbacivanja)
-        mapaKompPosleIzbacivanjaMinusGrana = vratiKomponente(mapaPosleIzbacivanjaMinusGrana)
-        print("Nakon izbacivanja grana koje smetaju, graf je klasterabilan " ,proveriKoalicije(mapaKompPosleIzbacivanjaMinusGrana, len(mapaKompPosleIzbacivanjaMinusGrana.keys()), grafPosleIzbacivanja))
+        # mapaPosleIzbacivanjaMinusGrana = grafPlusToMap(grafPosleIzbacivanja)
+        mapaKompPosleIzbacivanjaMinusGrana = vratiKomponente(grafPosleIzbacivanja)
+        print("Nakon izbacivanja grana koje smetaju, postoji {} antikoalicija".format(proveriKoalicije(mapaKompPosleIzbacivanjaMinusGrana, grafPosleIzbacivanja)))
+
+
+        print("Sledi analiza grafova")
+        print("Prosecan stepen grafa", str(round(prosecanStepenGrafa(g),2)))
+        print("Stepen grafa koalicija", str(round(prosecanStepenGrafa(grafPosleIzbacivanja),2)))
+        print("prosecan stepen  antikoalicija", str(round(prosecanStepenKomponenti(NULL, g , antiKoalicijeListOfGrafs), 2)))    
+
+        print("Proecan dijametar antikoalicija ",prosecanDijametar(antiKoalicijeListOfGrafs))
+        
+
+
+
+
+
+    
 
 
 
 
 def ucitajGraf(brojGrafa):
     if brojGrafa == 1:
-        g = ucitaj()
+        g = ucitaj_klasterabilan()
         return g
     elif brojGrafa == 2:
         g = ucitaj_neklasterabilan()
@@ -70,9 +94,16 @@ def ucitajGraf(brojGrafa):
         g = nx.tutte_graph()
         g = oznaci_grane_grafa(g)
         return g
-    elif brojGrafa == 3:
-        g = ucitaj_wiki(path.join(os.path.abspath(os.path.join(os.getcwd(), os.path.pardir)), "klase", "wiki-RFA.txt"))
+    elif brojGrafa == 4:
+        g = ucitaj_wiki(path.join(os.path.abspath(os.path.join(os.getcwd(), os.path.pardir)), "files", "wiki-RFA.txt"))
         return g
+    elif brojGrafa == 5:
+        g = ucitaj_slashdot(path.join(os.path.abspath(os.path.join(os.getcwd(), os.path.pardir)), "klase", "soc-sign-slashdot.txt"))
+        return g
+    elif brojGrafa == 6:
+        g = ucitaj_epinions(path.join(path.join(os.path.abspath(os.path.join(os.getcwd(), os.path.pardir))), "files", "bitcoin-epinions.csv"))
+        return g
+
 
 
 def oznaci_grane_grafa(g):
