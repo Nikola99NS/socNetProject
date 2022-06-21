@@ -12,7 +12,7 @@ import random
 from analiza import prosecanStepenGrafa, prosecanStepenKomponenti
 from komponente import proveriKoalicije
 from rucniGraf import ucitaj_klasterabilan, ucitaj_neklasterabilan
-from grafToMap import grafPlusToMap
+# from grafToMap import grafPlusToMap
 from komponente import vratiKomponente, proveriKoalicije, vratiGrafoveAntiKoalicija, kreirajGrafKlastera, izbaciMinusGrane
 from nacrtaj import nacrtaj
 from msilib.schema import SelfReg
@@ -27,11 +27,33 @@ SelfReg.minusGraneList = []
 
 
 def radi():
-    # g = ucitaj_klasterabilan()
+
+    map={}
+    lista1=[]
+    lista2=[]
+    lista3=[]
+    lista1.append(2)
+    lista1.append(6)
+    lista2.append(3)
+    lista2.append(2)
+    lista3.append(4)
+    map[2]=lista1
+    map[7]=lista2
+    map[3]=lista3
+
+    print(chain(*list(map.values()))) 
+
+    print(list(chain(*list(map.values()))))
+    print(list(map.values()))
+
+    # if 2 not in list(chain(*list(map.values()))):
+    if 5 not in chain(*list(map.values())):
+        print("aaa")
+     # g = ucitaj_klasterabilan()
     # mapaKomponenti = vratiKomp(g)
     # print(mapaKomponenti)
 
-    g = nx.Graph()
+    # g = nx.Graph()
 
     # for i in range(1,16):
     #     g.add_node(i)
@@ -289,7 +311,7 @@ radi()
 
 
 # vratiBrojKomponenti()
-ucitaj_wiki(path.join(os.path.abspath(os.path.join(os.getcwd(), os.path.pardir)), "klase", "fajl.txt"))
+# ucitaj_wiki(path.join(os.path.abspath(os.path.join(os.getcwd(), os.path.pardir)), "klase", "fajl.txt"))
 
 
 

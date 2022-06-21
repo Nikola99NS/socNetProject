@@ -24,6 +24,7 @@ def main():
     print("Broj grana grafa : ",len(g.edges))
     print("Broj cvorova grafa : ", len(g.nodes))
     mapaKomponenti = vratiKomponente(g)
+    print(mapaKomponenti)
     print("Broj komponenti je : ",len(mapaKomponenti.keys()))
     print("Broj povezanih komponenti : ",nx.number_connected_components(g))
 

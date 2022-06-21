@@ -16,7 +16,16 @@ sys.setrecursionlimit(1000000)
 SelfReg.minusGrane ={}
 SelfReg.minusGraneList = []
 SelfReg.brojac = 0
-    
+
+#The self keyword is used to represent an instance (object) of the given class
+
+#ovde sam umesto kljuca za mapu mogao brojac
+
+#samo print(map.values()) => dict_values([[2], [3], [4]])
+#samo print(list(map.values())) => [[2], [3], [4]]
+#samo print(chain(*list(map.values())))  => <itertools.chain object at 0x000001538F866FA0>
+# i onda print(list(chain(*list(mapaKomp.values()))))  => ono sto nam treba [2,3,4]
+
 def vratiKomponente(g):
     mapaKomp = {}
     for c in g.nodes:
@@ -54,8 +63,8 @@ def proveriKoalicije(mapaKomponenti, g):
             
 
 def proveriDaLiJeKlasterKoalicija(elementiKlastera, g):
-    for a, b in itertools.combinations(elementiKlastera, 2):
-        if g.has_edge(a, b):
+    for a, b in itertools.combinations(elementiKlastera, 2):    # sve kombinacije grana duzine 2
+        if g.has_edge(a, b):                      # ako postoji ta grana u grafu
             z = g.get_edge_data(a, b)['znak']
             if z=="-" : return "nije koalicija"
     return "je koalicija"
@@ -64,7 +73,7 @@ def proveriDaLiJeKlasterKoalicija(elementiKlastera, g):
 def vratiGrafoveAntiKoalicija(mapaKomponenti, n, g):
     grafovi = []
     for i in range (0, n) :
-        elementiKlastera = mapaKomponenti[list(mapaKomponenti.keys())[i]]
+        elementiKlastera = mapaKomponenti[list(mapaKomponenti.keys())[i]]   # list(mapaKomponenti.keys())- dobijemo listu kljuceva komponenti, i onda sa [i] dobijemo zeljeni kljuc
         graf = vratiGrafAntikoalicije(elementiKlastera, g)
         if graf is not None:
             grafovi.append(graf)
@@ -95,7 +104,7 @@ def kreirajGrafKlastera(elementiKlastera, g):
 
 def izbaciMinusGrane(antiKoalicijeListOfGrafs, g):
 
-    grafNovi = g.copy()
+    grafNovi = g.copy()    # da sam stavio grafNovi = g , onda bi grafNovi pokazivao na g
 
     for i in range (0, len(antiKoalicijeListOfGrafs)):
 
